@@ -10,6 +10,7 @@
 #include <string.h>
 #include <dirent.h>
 #include "install.h"
+#include "remove.h"
 #include "metadata.h"
 #include "file-tools.h"
 #include "extract.h"
@@ -24,16 +25,34 @@ int print_packages_data(char **configs) {
     return 0;
 }
 
+int print_help() {
+	printf("Usage:\n");
+	printf("   okiz [action] [package/s]\n");
+	printf("\nActions:\n");
+	printf("   install - Installs a package\n");
+	printf("   remove  - Removes a package\n");
+	printf("   help    - Prints this message\n");
+	return 0;
+}
 
 int main(int argc, char **argv) {
-	if(argc < 2) {
+	if(argc < 3) {
 		printf("\x1b[0;31mERROR\x1b[0m: Too few arguments\n");
-		// Add print_help() here
+		print_help();
 		return 1;
 	}
 
-	char **dirs = extract_packages(argc, argv);
-	install_packages(dirs);
+	if(!strcmp(argv[2], "install")) {
+		char **dirs = extract_packages(argc, argv);
+		if(install_packages(dirs) != 0) { return 1; }
+		return 0;
+	} if(!strcmp(argv[2], "remove")) {
+		if(remove_packages(argv + 2) != 0) { return 1; }
+		return 0;
+	} else {
+		print_help();
+		return 0;
+	}
 	
 	return 0;
 }

@@ -1,3 +1,7 @@
+#ifndef EXTRACT_H
+
+#define EXTRACT_H
+
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
@@ -53,3 +57,5 @@ char **extract_packages(int argc, char **argv) {
 
     return dirs;
 }
+
+#endif

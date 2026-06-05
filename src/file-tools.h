@@ -1,18 +1,26 @@
+#ifndef FILE_TOOLS_H
+
+#define FILE_TOOLS_H
+
 #include <string.h>
 #include <stdio.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <dirent.h>
+#include <stdlib.h>
+#include <limits.h>
 
-int remove_full_dir(const char *path) {
+int remove_recursive(const char *path) {
     struct stat st;
+
     if (lstat(path, &st) != 0)
         return -1;
 
     if (S_ISDIR(st.st_mode)) {
         DIR *dir = opendir(path);
-        if (!dir) return -1;
+        if (!dir)
+            return -1;
 
         struct dirent *ent;
         char buf[PATH_MAX];
@@ -22,7 +30,7 @@ int remove_full_dir(const char *path) {
                 continue;
 
             snprintf(buf, sizeof(buf), "%s/%s", path, ent->d_name);
-            remove_full_dir(buf);
+            remove_recursive(buf);
         }
 
         closedir(dir);
@@ -30,6 +38,32 @@ int remove_full_dir(const char *path) {
     }
 
     return unlink(path);
+}
+
+int remove_list(const char *listfile) {
+    FILE *fp = fopen(listfile, "r");
+    if (!fp)
+        return -1;
+
+    char path[PATH_MAX];
+
+    while (fgets(path, sizeof(path), fp)) {
+        path[strcspn(path, "\r\n")] = '\0';
+
+        if (path[0] == '\0')
+            continue;
+
+        struct stat st;
+        if (lstat(path, &st) != 0)
+            continue;
+
+        if (S_ISDIR(st.st_mode)) {
+            remove_recursive(path);
+        }
+    }
+
+    fclose(fp);
+    return 0;
 }
 
 int copy_symlink(const char *src, const char *dst) {
@@ -125,3 +159,5 @@ int copy_dir(const char *src, const char *dst_root) {
     closedir(dir);
     return 0;
 }
+
+#endif

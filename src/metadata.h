@@ -1,3 +1,7 @@
+#ifndef METADATA_H
+
+#define METADATA_H
+
 #include <stdio.h>
 #include <string.h>
 
@@ -28,3 +32,5 @@ char *parse_metadata(char *file, char *keyinput) {
 	fclose(f);
 	return NULL;
 }
+
+#endif
