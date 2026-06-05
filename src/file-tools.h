@@ -5,6 +5,33 @@
 #include <fcntl.h>
 #include <dirent.h>
 
+int remove_full_dir(const char *path) {
+    struct stat st;
+    if (lstat(path, &st) != 0)
+        return -1;
+
+    if (S_ISDIR(st.st_mode)) {
+        DIR *dir = opendir(path);
+        if (!dir) return -1;
+
+        struct dirent *ent;
+        char buf[PATH_MAX];
+
+        while ((ent = readdir(dir)) != NULL) {
+            if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, ".."))
+                continue;
+
+            snprintf(buf, sizeof(buf), "%s/%s", path, ent->d_name);
+            remove_full_dir(buf);
+        }
+
+        closedir(dir);
+        return rmdir(path);
+    }
+
+    return unlink(path);
+}
+
 int copy_symlink(const char *src, const char *dst) {
     char buf[4096];
 
