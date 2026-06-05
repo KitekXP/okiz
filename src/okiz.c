@@ -84,53 +84,81 @@ int print_packages_data(char **configs) {
 }
 
 int package_install(char *package_location) {
+	char metadata_loc[PATH_MAX];
+	snprintf(metadata_loc, sizeof(metadata_loc), "%s/package/metadata.conf", package_location);
+	char * package_name = parse_metadata(metadata_loc, "Name");
 	char install_message[4096];
-	snprintf(install_message, sizeof(install_message), "\x1b[0;35mINFO\x1b[0m: Copying files for %s...", package_location);
+	snprintf(install_message, sizeof(install_message), "\x1b[0;35mINFO\x1b[0m: Copying files for %s...", package_name);
 	printf(install_message);
 	char extract_src[PATH_MAX];
 	snprintf(extract_src, sizeof(extract_src), "%s/package/files", package_location);
-	copy_dir(extract_src, "/");
+	if(copy_dir(extract_src, "/") != 0) {
+		printf("\x1b[0;31mERROR\x1b[0m\n");
+		return 1;
+	}
+	
 	printf("\x1b[0;32mDONE\x1b[0m\n");
 	return 0;
 }
 
 int package_postinstall(char *package_location) {
+	char metadata_loc[PATH_MAX];
+	snprintf(metadata_loc, sizeof(metadata_loc), "%s/package/metadata.conf", package_location);
+	char * package_name = parse_metadata(metadata_loc, "Name");
 	char post_message[4096];
-	snprintf(post_message, sizeof(post_message), "\x1b[0;35mINFO\x1b[0m: Executing postinstall for %s...", package_location);
+	snprintf(post_message, sizeof(post_message), "\x1b[0;35mINFO\x1b[0m: Executing postinstall for %s...", package_name);
 	printf(post_message);
 	char postinstall_path[PATH_MAX];
 	snprintf(postinstall_path, sizeof(postinstall_path), "%s/package/postinstall", package_location);
-	system(postinstall_path);
+	if(system(postinstall_path) != 0) {
+		printf("\x1b[0;31mERROR\x1b[0m\n");
+		return 1;
+	}
 	printf("\x1b[0;32mDONE\x1b[0m\n");
 	return 0;
 }
 
 int package_preinstall(char *package_location) {
+	char metadata_loc[PATH_MAX];
+	snprintf(metadata_loc, sizeof(metadata_loc), "%s/package/metadata.conf", package_location);
+	char * package_name = parse_metadata(metadata_loc, "Name");
 	char pre_message[4096];
-	snprintf(pre_message, sizeof(pre_message), "\x1b[0;35mINFO\x1b[0m: Executing preinstall for %s...", package_location);
+	snprintf(pre_message, sizeof(pre_message), "\x1b[0;35mINFO\x1b[0m: Executing preinstall for %s...", package_name);
 	printf(pre_message);
 	char preinstall_path[PATH_MAX];
 	snprintf(preinstall_path, sizeof(preinstall_path), "%s/package/preinstall", package_location);
-	system(preinstall_path);
+	if(system(preinstall_path) != 0) {
+		printf("\x1b[0;31mERROR\x1b[0m\n");
+		return 1;
+	}
 	printf("\x1b[0;32mDONE\x1b[0m\n");
 	return 0;
 }
 
 int install_packages(char **package_locations) {
 	for (size_t i = 0; package_locations[i] != NULL; i++) {
-		package_preinstall(package_locations[i]);
+		if(package_preinstall(package_locations[i]) != 0) {
+			printf("\x1b[0;31mERROR\x1b[0m: An error occurred while executing preinstall\n");
+			return 1;
+		}
 		printf("\n");
 	}
 	printf("\x1b[0;35mINFO\x1b[0m: Done executing preinstall scripts\n\n");
 	
 	for (size_t i = 0; package_locations[i] != NULL; i++) {
-		package_install(package_locations[i]);
+		if(package_install(package_locations[i]) != 0) {
+			printf("\x1b[0;31mERROR\x1b[0m: An error occurred while copying files\n");
+			return 2;
+		}
 		printf("\n");
 	}
 	printf("\x1b[0;35mINFO\x1b[0m: Done copying files for packages\n\n");
 	
 	for (size_t i = 0; package_locations[i] != NULL; i++) {
-		package_postinstall(package_locations[i]);
+		if(package_postinstall(package_locations[i]) != 0) {
+			printf("\x1b[0;31mERROR\x1b[0m: An error occurred while executing postinstall\n");
+			return 3;
+		}
 		printf("\n");
 	}
 	printf("\x1b[0;35mINFO\x1b[0m: Done postinstall scripts\n\n");

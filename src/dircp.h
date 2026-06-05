@@ -81,7 +81,11 @@ int copy_dir(const char *src, const char *dst_root) {
             continue;
 
         if (S_ISDIR(st.st_mode)) {
-            copy_dir(src_path, dst_path);   // recursive full copy
+            mkdir(dst_path, st.st_mode & 07777);
+            chown(dst_path, st.st_uid, st.st_gid);
+            chmod(dst_path, st.st_mode & 07777);
+        
+            copy_dir(src_path, dst_path);
         }
         else if (S_ISLNK(st.st_mode)) {
             copy_symlink(src_path, dst_path);
