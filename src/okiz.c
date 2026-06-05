@@ -85,7 +85,7 @@ int print_packages_data(char **configs) {
 
 int package_install(char *package_location) {
 	char install_message[4096];
-	snprintf(install_message, sizeof(install_message), "\x1b[0;35mINFO\x1b[0m: Extracting %s...", package_location);
+	snprintf(install_message, sizeof(install_message), "\x1b[0;35mINFO\x1b[0m: Copying files for %s...", package_location);
 	printf(install_message);
 	char extract_src[PATH_MAX];
 	snprintf(extract_src, sizeof(extract_src), "%s/files", package_location);
@@ -99,7 +99,7 @@ int package_postinstall(char *package_location) {
 	snprintf(post_message, sizeof(post_message), "\x1b[0;35mINFO\x1b[0m: Executing postinstall for %s...", package_location);
 	printf(post_message);
 	char postinstall_path[PATH_MAX];
-	snprintf(postinstall_path, sizeof(postinstall_path), "%s/preinstall", package_location);
+	snprintf(postinstall_path, sizeof(postinstall_path), "%s/postinstall", package_location);
 	system(postinstall_path);
 	printf("\x1b[0;32mDONE\x1b[0m\n");
 	return 0;
@@ -121,19 +121,34 @@ int install_packages(char **package_locations) {
 		package_preinstall(package_locations[i]);
 		printf("\n");
 	}
-	printf("\x1b[0;35mINFO\x1b[0m: Done executing preinstall scripts\n");
+	printf("\x1b[0;35mINFO\x1b[0m: Done executing preinstall scripts\n\n");
 	
 	for (size_t i = 0; package_locations[i] != NULL; i++) {
 		package_install(package_locations[i]);
 		printf("\n");
 	}
-	printf("\x1b[0;35mINFO\x1b[0m: Done extracting packages\n");
+	printf("\x1b[0;35mINFO\x1b[0m: Done copying files for packages\n\n");
 	
 	for (size_t i = 0; package_locations[i] != NULL; i++) {
 		package_postinstall(package_locations[i]);
 		printf("\n");
 	}
-	printf("\x1b[0;35mINFO\x1b[0m: Done postinstall scripts\n");
+	printf("\x1b[0;35mINFO\x1b[0m: Done postinstall scripts\n\n");
+	return 0;
+}
+
+char **extract_packages(int argc, char **argv) {
+    int count = argc - 2;
+
+    char **dirs = malloc((count + 1) * sizeof(char *));
+
+    for (int i = 0; i < count; i++) {
+        dirs[i] = temp_extract(argv[i + 2]);
+    }
+
+    dirs[count] = NULL;
+
+    return dirs;
 }
 
 int main(int argc, char **argv) {
@@ -142,5 +157,9 @@ int main(int argc, char **argv) {
 		// Add print_help() here
 		return 1;
 	}
+
+	char **dirs = extract_packages(argc, argv);
+	install_packages(dirs);
+	
 	return 0;
 }
