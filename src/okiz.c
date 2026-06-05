@@ -8,7 +8,44 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <dirent.h>
 #include "dircp.h"
+
+char *config_folder = "/etc/okiz";
+
+int gen_file_list(const char *path, const char *outfile) {
+    char abs_base[PATH_MAX];
+
+    if (!realpath(path, abs_base)) {
+        return -1;
+    }
+
+    FILE *out = fopen(outfile, "w");
+    if (!out) return -1;
+
+    DIR *dir = opendir(abs_base);
+    if (!dir) {
+        fclose(out);
+        return -1;
+    }
+
+    struct dirent *ent;
+    char full[PATH_MAX];
+
+    while ((ent = readdir(dir)) != NULL) {
+        if (ent->d_name[0] == '.' &&
+            (ent->d_name[1] == '\0' ||
+            (ent->d_name[1] == '.' && ent->d_name[2] == '\0')))
+            continue;
+
+        snprintf(full, sizeof(full), "%s/%s", abs_base, ent->d_name);
+        fprintf(out, "%s\n", full);
+    }
+
+    closedir(dir);
+    fclose(out);
+    return 0;
+}
 
 char *temp_extract(char * archive) {
 	char dir[] = "/tmp/okiz-XXXXXX";
@@ -83,6 +120,26 @@ int print_packages_data(char **configs) {
     return 0;
 }
 
+int package_list(char *package_location) {
+	char metadata_loc[PATH_MAX];
+	snprintf(metadata_loc, sizeof(metadata_loc), "%s/package/metadata.conf", package_location);
+	char * package_name = parse_metadata(metadata_loc, "Name");
+	char list_message[4096];
+	snprintf(list_message, sizeof(list_message), "\x1b[0;35mINFO\x1b[0m: Generating a file list of %s...", package_name);
+	printf(list_message);
+	char extract_src[PATH_MAX];
+	snprintf(extract_src, sizeof(extract_src), "%s/package/files", package_location);
+	char file_list[PATH_MAX];
+	snprintf(file_list, sizeof(file_list), "%s/%s", config_folder, package_name);
+	if(gen_file_list(extract_src, file_list) != 0) {
+		printf("\x1b[0;31mERROR\x1b[0m\n");
+		return 1;
+	}
+
+	printf("\x1b[0;32mDONE\x1b[0m\n");
+	return 0;
+}
+
 int package_install(char *package_location) {
 	char metadata_loc[PATH_MAX];
 	snprintf(metadata_loc, sizeof(metadata_loc), "%s/package/metadata.conf", package_location);
@@ -147,8 +204,17 @@ int install_packages(char **package_locations) {
 	
 	for (size_t i = 0; package_locations[i] != NULL; i++) {
 		if(package_install(package_locations[i]) != 0) {
-			printf("\x1b[0;31mERROR\x1b[0m: An error occurred while copying files\n");
+			printf("\x1b[0;31mERROR\x1b[0m: An error occurred while generating a list of files\n");
 			return 2;
+		}
+		printf("\n");
+	}
+	printf("\x1b[0;35mINFO\x1b[0m: Done generating a list of files\n\n");
+	
+	for (size_t i = 0; package_locations[i] != NULL; i++) {
+		if(package_install(package_locations[i]) != 0) {
+			printf("\x1b[0;31mERROR\x1b[0m: An error occurred while copying files\n");
+			return 3;
 		}
 		printf("\n");
 	}
@@ -157,7 +223,7 @@ int install_packages(char **package_locations) {
 	for (size_t i = 0; package_locations[i] != NULL; i++) {
 		if(package_postinstall(package_locations[i]) != 0) {
 			printf("\x1b[0;31mERROR\x1b[0m: An error occurred while executing postinstall\n");
-			return 3;
+			return 4;
 		}
 		printf("\n");
 	}
