@@ -88,7 +88,7 @@ int package_install(char *package_location) {
 	snprintf(install_message, sizeof(install_message), "\x1b[0;35mINFO\x1b[0m: Copying files for %s...", package_location);
 	printf(install_message);
 	char extract_src[PATH_MAX];
-	snprintf(extract_src, sizeof(extract_src), "%s/files", package_location);
+	snprintf(extract_src, sizeof(extract_src), "%s/package/files", package_location);
 	copy_dir(extract_src, "/");
 	printf("\x1b[0;32mDONE\x1b[0m\n");
 	return 0;
@@ -99,7 +99,7 @@ int package_postinstall(char *package_location) {
 	snprintf(post_message, sizeof(post_message), "\x1b[0;35mINFO\x1b[0m: Executing postinstall for %s...", package_location);
 	printf(post_message);
 	char postinstall_path[PATH_MAX];
-	snprintf(postinstall_path, sizeof(postinstall_path), "%s/postinstall", package_location);
+	snprintf(postinstall_path, sizeof(postinstall_path), "%s/package/postinstall", package_location);
 	system(postinstall_path);
 	printf("\x1b[0;32mDONE\x1b[0m\n");
 	return 0;
@@ -110,7 +110,7 @@ int package_preinstall(char *package_location) {
 	snprintf(pre_message, sizeof(pre_message), "\x1b[0;35mINFO\x1b[0m: Executing preinstall for %s...", package_location);
 	printf(pre_message);
 	char preinstall_path[PATH_MAX];
-	snprintf(preinstall_path, sizeof(preinstall_path), "%s/preinstall", package_location);
+	snprintf(preinstall_path, sizeof(preinstall_path), "%s/package/preinstall", package_location);
 	system(preinstall_path);
 	printf("\x1b[0;32mDONE\x1b[0m\n");
 	return 0;
