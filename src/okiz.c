@@ -28,7 +28,7 @@ int print_packages_data(char **configs) {
 
 int print_help() {
 	printf("Usage:\n");
-	printf("   okiz [action] [package/s]\n");
+	printf("   okiz <action> [package/s]\n");
 	printf("\nActions:\n");
 	printf("   install - Installs a package\n");
 	printf("   remove  - Removes a package\n");

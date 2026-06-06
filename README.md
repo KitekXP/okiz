@@ -4,7 +4,7 @@ okiz - A package installer that is smaller than most and is also not idiotproof
 
 # SYNOPSIS
 
-okiz <action> [package/s]
+okiz <action> \[package/s\]
 
 # DESCRIPTION
 
