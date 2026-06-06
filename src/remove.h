@@ -11,7 +11,6 @@
 int package_remove(char *package_name) {
 	char remove_list_path[4096];
 	snprintf(remove_list_path, sizeof(remove_list_path), "%s/%s.list",config_folder , package_name);
-
 	char info_out_message[4096];
 	snprintf(info_out_message, sizeof(info_out_message), "Removing package %s...", package_name);
 	info(info_out_message);

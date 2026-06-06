@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 
-char *parse_metadata(char *file, char *keyinput) {
+char *parse_metadata(const char *file, const char *keyinput) {
 	FILE *f = fopen(file, "r");
 	if (!f) return NULL;
 

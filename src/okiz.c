@@ -18,8 +18,9 @@
 
 int print_packages_data(char **configs) {
     for (size_t i = 0; configs[i] != NULL; i++) {
-        char *packagename = parse_metadata(configs[i], "Name");
-        printf("%s ", packagename);
+        char *package_name = parse_metadata(configs[i], "Name");
+        printf("%s ", package_name);
+        free(package_name);
     }
     printf("\n");
     return 0;
@@ -36,17 +37,27 @@ int print_help() {
 }
 
 int main(int argc, char **argv) {
-	if(argc < 3) {
+	if(argc < 2) {
 		printf("\x1b[0;31mERROR\x1b[0m: Too few arguments\n");
 		print_help();
 		return 1;
 	}
 
-	if(!strcmp(argv[2], "install")) {
+	if(!strcmp(argv[1], "install")) {
+		if(argc < 3) {
+			printf("\x1b[0;31mERROR\x1b[0m: Too few arguments\n");
+			print_help();
+			return 1;
+		}
 		char **dirs = extract_packages(argc, argv);
 		if(install_packages(dirs) != 0) { return 1; }
 		return 0;
-	} if(!strcmp(argv[2], "remove")) {
+	} if(!strcmp(argv[1], "remove")) {
+		if(argc < 3) {
+			printf("\x1b[0;31mERROR\x1b[0m: Too few arguments\n");
+			print_help();
+			return 1;
+		}
 		if(remove_packages(argv + 2) != 0) { return 1; }
 		return 0;
 	} else {
