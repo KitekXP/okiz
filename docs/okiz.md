@@ -1,3 +1,7 @@
+% OKIZ(1)
+% Tomasz Wojtczak
+% June 6, 2026
+
 # TSUX
 
 okiz - A package installer that is smaller than most and is also not idiotproof
