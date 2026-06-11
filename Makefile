@@ -1,4 +1,4 @@
-CFLAGS=-o build/okiz
+CFLAGS=-Oz -flto -o build/okiz
 LDFLAGS=-Oz
 LDLIBS=-larchive
 
